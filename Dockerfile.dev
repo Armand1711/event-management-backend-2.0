@@ -1,0 +1,30 @@
+# Use Node.js 22.11.0 as the base image (matching README prerequisite)
+FROM node:22.11.0
+
+# Set working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Set environment variables (will be overridden by docker-compose)
+ENV PORT=5000
+ENV DB_HOST=event-management-db-virtualwindow-10b3.i.aivencloud.com
+ENV DB_PORT=26999
+ENV DB_USER=avnadmin
+ENV DB_PASSWORD=AVNS_xG4U1d5QynJ4QiLALuf
+ENV DB_NAME=defaultdb
+ENV DB_SSL_CA=/app/aiven-ca-cert.pem
+ENV JWT_SECRET=my-secret-12345
+
+# Expose port 5000
+EXPOSE 5000
+
+# Start the application
+CMD ["node", "index.js"]
