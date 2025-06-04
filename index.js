@@ -19,23 +19,41 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
 // Database initialization
 const initializeDatabase = async () => {
+    let client;
     try {
-        const client = await pool.connect();
-        const sql = fs.readFileSync('./init.sql', 'utf8');
+        client = await pool.connect();
+        let sql;
+        try {
+            sql = fs.readFileSync('./init.sql', 'utf8');
+        } catch (fileErr) {
+            console.error('Could not read init.sql:', fileErr.message);
+            return;
+        }
         // Split SQL into individual statements and execute them to handle complex scripts
         const statements = sql.split(';').filter(s => s.trim());
         for (const statement of statements) {
             if (statement.trim()) {
-                await client.query(statement + ';');
+                try {
+                    await client.query(statement);
+                } catch (queryErr) {
+                    console.error('Failed SQL:', statement);
+                    console.error('Error:', queryErr.message);
+                }
             }
         }
-        client.release();
         console.log('Database initialized successfully');
     } catch (err) {
         console.error('Database initialization error:', err.stack);
         // Continue even if some inserts fail (e.g., ON CONFLICT)
+    } finally {
+        if (client) client.release();
     }
 };
 
