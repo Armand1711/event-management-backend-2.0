@@ -2,6 +2,15 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+
+-- Events table
+CREATE TABLE IF NOT EXISTS events (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+=======
     name VARCHAR(255) NOT NULL, -- Added for employee assignment
     password VARCHAR(255) NOT NULL
 );
@@ -10,6 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS events (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE, -- UNIQUE to prevent conflicts
+
     client VARCHAR(255),
     date DATE NOT NULL,
     status VARCHAR(50) NOT NULL,
@@ -30,13 +40,16 @@ CREATE TABLE IF NOT EXISTS budget_items (
     status VARCHAR(50) NOT NULL
 );
 
--- Tasks table table
+
+-- Tasks table
+
 CREATE TABLE IF NOT EXISTS tasks (
     id SERIAL PRIMARY KEY,
     event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     priority VARCHAR(50) NOT NULL,
-    assigned_to INTEGER REFERENCES users(id), -- Changed to reference users
+    assigned_to INTEGER REFERENCES users(id),
+
     dueDate DATE,
     budget DECIMAL(10,2),
     completed BOOLEAN DEFAULT FALSE
@@ -45,7 +58,9 @@ CREATE TABLE IF NOT EXISTS tasks (
 -- Event requests table
 CREATE TABLE IF NOT EXISTS event_requests (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE, -- UNIQUE to prevent conflicts
+
+    name VARCHAR(255) NOT NULL UNIQUE,
+
     budget DECIMAL(10,2) NOT NULL,
     client VARCHAR(255) NOT NULL,
     date DATE NOT NULL,
