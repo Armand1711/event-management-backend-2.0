@@ -9,19 +9,25 @@ const pool = require('./db');
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:3000', optionsSuccessStatus: 200 }));
 app.use(express.json());
 
-// Initialize database schema and data
 const initializeDatabase = async () => {
     try {
         const client = await pool.connect();
         const sql = fs.readFileSync('./init.sql', 'utf8');
-        await client.query(sql);
+        // Split SQL into individual statements and execute them
+        const statements = sql.split(';').filter(s => s.trim());
+        for (const statement of statements) {
+            if (statement.trim()) {
+                await client.query(statement + ';');
+            }
+        }
         client.release();
         console.log('Database initialized successfully');
     } catch (err) {
         console.error('Database initialization error:', err.stack);
+        // Continue even if some inserts fail (e.g., ON CONFLICT)
     }
 };
 
@@ -38,12 +44,14 @@ const eventsRoutes = require('./routes/events');
 const budgetRoutes = require('./routes/budget');
 const tasksRoutes = require('./routes/tasks');
 const eventRequestsRoutes = require('./routes/eventRequests');
+const archiveRoutes = require('./routes/archive');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/budget', budgetRoutes);
 app.use('/api/tasks', tasksRoutes);
 app.use('/api/event-requests', eventRequestsRoutes);
+app.use('/api/archive', archiveRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.listen(process.env.PORT || 5000, () => {
